@@ -1,0 +1,29 @@
+{
+  "name": "@meetopenbot/firecrawl",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Firecrawl agent plugin for OpenBot",
+  "main": "./dist/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "esbuild index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --external:melony --external:zod",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@mendable/firecrawl-js": "^4.22.2",
+    "melony": "^0.3.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.1",
+    "esbuild": "^0.21.0",
+    "zod": "^3.23.8"
+  }
+}
