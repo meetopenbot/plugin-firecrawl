@@ -1,6 +1,6 @@
 {
   "name": "@meetopenbot/firecrawl",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "description": "Firecrawl agent plugin for OpenBot",
   "main": "./dist/index.js",
