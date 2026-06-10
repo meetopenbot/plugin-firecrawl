@@ -66,6 +66,11 @@ const plugin = definePlugin({
       const apiKey = getApiKey();
       if (!apiKey) {
         yield buildApiKeyWidget(context.agentId, threadId);
+        yield agentOutput({
+          agentId: context.agentId,
+          content: "API key required. Please provide it in the widget.",
+          threadId,
+        });
         return;
       }
 
@@ -85,6 +90,11 @@ const plugin = definePlugin({
           const errMsg = started?.error || "Unknown error";
           if (isAuthError(errMsg)) {
             yield buildApiKeyWidget(context.agentId, threadId, errMsg);
+            yield agentOutput({
+              agentId: context.agentId,
+              content: `Authentication failed: ${errMsg}. Please update the API key in the widget.`,
+              threadId,
+            });
           } else {
             yield agentOutput({
               agentId: context.agentId,
@@ -97,7 +107,7 @@ const plugin = definePlugin({
 
         yield agentOutput({
           agentId: context.agentId,
-          content: `Firecrawl agent task created (id: ${started.id}). Waiting for results...`,
+          content: `Task created (id: ${started.id}). Waiting for results...`,
           threadId,
         });
 
@@ -108,7 +118,7 @@ const plugin = definePlugin({
           if (Date.now() - startTime > POLL_TIMEOUT_MS) {
             yield agentOutput({
               agentId: context.agentId,
-              content: `Firecrawl agent timed out after ${Math.round(POLL_TIMEOUT_MS / 1000)}s.`,
+              content: `Timed out after ${Math.round(POLL_TIMEOUT_MS / 1000)}s.`,
               threadId,
             });
             return;
@@ -123,7 +133,7 @@ const plugin = definePlugin({
           if (status.status === "completed") {
             yield agentOutput({
               agentId: context.agentId,
-              content: "Firecrawl agent completed successfully.",
+              content: "Completed successfully.",
               threadId,
             });
             yield agentOutput({
@@ -137,7 +147,7 @@ const plugin = definePlugin({
           if (status.status === "failed" || status.status === "cancelled") {
             yield agentOutput({
               agentId: context.agentId,
-              content: `Firecrawl agent ${status.status}: ${status.error || "no details provided"}`,
+              content: `Agent ${status.status}: ${status.error || "no details provided"}`,
               threadId,
             });
             return;
@@ -158,6 +168,11 @@ const plugin = definePlugin({
         const message = error instanceof Error ? error.message : "Firecrawl request failed.";
         if (isAuthError(message)) {
           yield buildApiKeyWidget(context.agentId, threadId, message);
+          yield agentOutput({
+            agentId: context.agentId,
+            content: `Authentication failed: ${message}. Please update the API key in the widget.`,
+            threadId,
+          });
         } else {
           yield agentOutput({
             agentId: context.agentId,
@@ -169,7 +184,7 @@ const plugin = definePlugin({
     });
 
     builder.on(
-      "plugin:ui:widget:response",
+      "client:ui:widget:response",
       async function* (event: UIWidgetResponseEvent, handlerCtx: PluginHandlerContext) {
         const { metadata, values, widgetId } = event.data;
         if (!metadata || metadata.type !== "api_key_request" || metadata.source !== "firecrawl") {
@@ -206,14 +221,14 @@ const plugin = definePlugin({
           yield agentOutput({
             agentId: context.agentId,
             content:
-              "Saved Firecrawl API key to workspace variables. Re-send your last message to retry.",
+              "API key saved to workspace variables. Re-send your last message to retry.",
             meta: { agentId: handlerCtx.state.agentId },
           });
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : String(error);
           yield agentOutput({
             agentId: context.agentId,
-            content: `[firecrawl] failed to save API key: ${errorMessage}`,
+            content: `Failed to save API key: ${errorMessage}`,
             meta: { agentId: handlerCtx.state.agentId },
           });
         }
